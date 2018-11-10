@@ -80,6 +80,28 @@ describe("insert", () => {
          })
     );
   });
+
+  test("nested insert: two nodes", () => {
+    let tree =
+      make(4, "hello")
+      |> insert(10, "world")
+      |> insert(8, "left")
+      |> insert(11, "right")
+      |> insert(2, "ayy");
+    expect(tree)
+    |> toEqual({
+         key: 4,
+         value: "hello",
+         left: Some({key: 2, value: "ayy", left: None, right: None}),
+         right:
+           Some({
+             key: 10,
+             value: "world",
+             left: Some({key: 8, value: "left", left: None, right: None}),
+             right: Some({key: 11, value: "right", left: None, right: None}),
+           }),
+       });
+  });
 });
 
 describe("search", () => {
@@ -98,4 +120,127 @@ describe("search", () => {
   test("non-existing key", () =>
     expect(tree |> search(124)) |> toBe(None)
   );
+});
+
+describe("remove", () => {
+  open BST;
+  open Expect;
+
+  test("existing key: no children", () => {
+    let tree = make(4, "hello") |> insert(2, "there") |> insert(6, "I am");
+    expect(tree |> delete(6))
+    |> toEqual(
+         Some({
+           key: 4,
+           value: "hello",
+           right: None,
+           left: Some({key: 2, value: "there", left: None, right: None}),
+         }),
+       );
+  });
+  test("existing key: only left child", () => {
+    let tree =
+      make(4, "hello")
+      |> insert(2, "there")
+      |> insert(6, "I am")
+      |> insert(5, "confused");
+    expect(tree |> delete(6))
+    |> toEqual(
+         Some({
+           key: 4,
+           value: "hello",
+           right: Some({key: 5, value: "confused", left: None, right: None}),
+           left: Some({key: 2, value: "there", left: None, right: None}),
+         }),
+       );
+  });
+  test("existing key: only right child", () => {
+    let tree =
+      make(4, "hello")
+      |> insert(2, "there")
+      |> insert(6, "I am")
+      |> insert(8, "there are too many keys!");
+    expect(tree |> delete(6))
+    |> toEqual(
+         Some({
+           key: 4,
+           value: "hello",
+           right:
+             Some({
+               key: 8,
+               value: "there are too many keys!",
+               left: None,
+               right: None,
+             }),
+           left: Some({key: 2, value: "there", left: None, right: None}),
+         }),
+       );
+  });
+  describe("existing key: both children", () => {
+    test("right subtree does not have left child", () => {
+      let tree =
+        make(4, "hello")
+        |> insert(2, "there")
+        |> insert(6, "I am")
+        |> insert(5, "confused")
+        |> insert(8, "there are too many keys!");
+      expect(tree |> delete(6))
+      |> toEqual(
+           Some({
+             key: 4,
+             value: "hello",
+             right:
+               Some({
+                 key: 8,
+                 value: "there are too many keys!",
+                 left:
+                   Some({key: 5, value: "confused", left: None, right: None}),
+                 right: None,
+               }),
+             left: Some({key: 2, value: "there", left: None, right: None}),
+           }),
+         );
+    });
+    test("right subtree has left child", () => {
+      let tree =
+        make(4, "hello")
+        |> insert(2, "there")
+        |> insert(6, "I am")
+        |> insert(5, "confused")
+        |> insert(8, "there are too many keys!")
+        |> insert(7, "it's getting complicated");
+      expect(tree |> delete(6))
+      |> toEqual(
+           Some({
+             key: 4,
+             value: "hello",
+             right:
+               Some({
+                 key: 7,
+                 value: "it's getting complicated",
+                 left:
+                   Some({key: 5, value: "confused", left: None, right: None}),
+
+                 right:
+                   Some({
+                     key: 8,
+                     value: "there are too many keys!",
+                     left: None,
+                     right: None,
+                   }),
+               }),
+             left: Some({key: 2, value: "there", left: None, right: None}),
+           }),
+         );
+    });
+  });
+  test("non-existing key", () => {
+    let tree =
+      make(4, "hello")
+      |> insert(2, "there")
+      |> insert(6, "I am")
+      |> insert(5, "confused");
+
+    expect(tree |> delete(10)) |> toEqual(Some(tree));
+  });
 });

@@ -5,10 +5,16 @@
   */
 module Option = {
   type t('a) = option('a);
-  let mapDefaultDelayed = (f: 'a => 'b, l: unit => 'b, v: t('a)) =>
+  let mapDefault = (f: 'a => 'b, l: 'b, v: t('a)) =>
     switch (v) {
-    | None => l()
+    | None => l
     | Some(v) => f(v)
+    };
+
+  let isSome = v =>
+    switch (v) {
+    | Some(v) => true
+    | None => false
     };
 
   module Functor = {
