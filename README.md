@@ -7,13 +7,19 @@ I decided that I wanted to figure out how those things work, so here's the progr
 # Build
 
 ```
-npm run build
+yarn build
 ```
 
 # Build + Watch
 
 ```
-npm run start
+yarn start
+```
+
+# Build + Watch
+
+```
+yarn start
 ```
 
 # Editor
