@@ -31,7 +31,14 @@ let rec search = (searchKey, {key, left, right, value}) =>
   | _ => None
   };
 
-let _deleteNode = ({left, right} as tree) =>
+/* TODO: it lacks tests */
+let rec leftmost = (tree: t('a, 'b), parent: t('a, 'b)) =>
+  switch (tree.left) {
+  | Some(left) => leftmost(left, tree)
+  | None => (tree, parent)
+  };
+
+let rec _deleteNode = ({left, right} as tree) =>
   switch (left, right) {
   | (None, None) => None
   | (Some(left), None) => Some(left)
@@ -39,11 +46,16 @@ let _deleteNode = ({left, right} as tree) =>
   | (Some(left), Some(right)) =>
     switch (right.left) {
     | None => Some({...right, left: Some(left)})
-    | Some(_) => Some(tree)
+    | Some(leftNode) =>
+      let (leftmostValue, _) = leftmost(leftNode, right);
+      Some({
+        ...leftmostValue,
+        left: Some(left),
+        right: delete(leftmostValue.key, right),
+      });
     }
-  };
-
-let rec delete = (key, tree) =>
+  }
+and delete = (key, tree) =>
   switch (key <=> tree.key) {
   | `LessThan => Some({...tree, left: Option.(tree.left >>= delete(key))})
   | `GreaterThan =>
